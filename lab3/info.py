@@ -46,4 +46,3 @@ class Signal_information(object):
     def next(self):
         self.path = self.path[1:]
 
-    
