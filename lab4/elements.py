@@ -180,6 +180,15 @@ class Network(object):
         my_df_filtered = my_df[(my_df['path'].str[0] == input_node) & (my_df['path'].str[-1] == output_node)]
         return my_df_filtered.values[0]
 
+    def find_best_latency(self, input_node, output_node):
+        if output_node == input_node:
+            return None
+        my_df = self.weighted_path
+        my_df.sort_values(by=['latency'], inplace=True, ascending=True)
+        my_df_filtered = my_df[(my_df['path'].str[0] == input_node) & (my_df['path'].str[-1] == output_node)]
+        return my_df_filtered.values[0]
+
+
 if __name__ == '__main__':
     network = Network('nodes.json')
     network.connect()
@@ -217,3 +226,4 @@ if __name__ == '__main__':
     network.draw()
     network.weighted_path = df
     print('\nBest_highest_snr with path A -> B: \n', network.find_best_snr('A', 'B'))
+    print('\nBest_lowest_latency with path A -> B: \n', network.find_best_latency('A', 'B'))
