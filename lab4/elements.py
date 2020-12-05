@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+
 class Node(object):
     def __init__(self, node_dictionary):
         self._label = node_dictionary['label']
@@ -88,6 +89,7 @@ class Network(object):
         self._nodes = {}
         self._lines = {}
         nodes_json = json.load(open(file, 'r'))
+        self._weighted_path = pd.DataFrame()
 
         for label in nodes_json:
             node_dictionary = nodes_json[label]
@@ -111,6 +113,14 @@ class Network(object):
     @property
     def lines(self):
         return self._lines
+
+    @property
+    def weighted_path(self):
+        return self._weighted_path
+
+    @weighted_path.setter
+    def weighted_path(self, weighted_path):
+        self._weighted_path = weighted_path
 
     def connect(self):
         nodes_dictionary = self.nodes
@@ -198,3 +208,4 @@ if __name__ == '__main__':
             df['snr'] = snrs
 
     network.draw()
+    network.weighted_path = df
