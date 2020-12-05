@@ -49,6 +49,7 @@ class Line(object):
         self._label = line_dictionary['label']
         self._length = line_dictionary['length']
         self._successive = {}
+        self._state = 'free'
 
     @property
     def label(self):
@@ -62,9 +63,17 @@ class Line(object):
     def successive(self):
         return self._successive
 
+    @property
+    def state(self):
+        return self._state
+
     @successive.setter
     def successive(self, successive):
         self._successive = successive
+
+    @state.setter
+    def state(self, state):
+        self._state = state
 
     def latency_generation(self):
         latency = self.length / (c * 2 / 3)
@@ -179,7 +188,24 @@ class Network(object):
         my_df = self.weighted_path
         my_df.sort_values(by=['snr'], inplace=True, ascending=False)
         my_df_filtered = my_df[(my_df['path'].str[0] == input_node) & (my_df['path'].str[-1] == output_node)]
-        return my_df_filtered.values[0]
+        found = False
+        for i in my_df_filtered.values:
+            path = i[0]
+            node1 = path[0]
+            free = True
+            for node_i in range(3, len(path), 3):
+                line = self.lines[node1 + path[node_i]]
+                if line.state != 'free':
+                    free = False
+                    break
+                node1 = path[node_i]
+            if free:
+                found = True
+                break
+        if found:
+            return i
+        else:
+            return None
 
     def find_best_latency(self, input_node, output_node):
         if output_node == input_node:
@@ -187,7 +213,24 @@ class Network(object):
         my_df = self.weighted_path
         my_df.sort_values(by=['latency'], inplace=True, ascending=True)
         my_df_filtered = my_df[(my_df['path'].str[0] == input_node) & (my_df['path'].str[-1] == output_node)]
-        return my_df_filtered.values[0]
+        found = False
+        for i in my_df_filtered.values:
+            path = i[0]
+            node1 = path[0]
+            free = True
+            for node_i in range(3, len(path), 3):
+                line = self.lines[node1 + path[node_i]]
+                if line.state != 'free':
+                    free = False
+                    break
+                node1 = path[node_i]
+            if free:
+                found = True
+                break
+        if found:
+            return i
+        else:
+            return None
 
     def stream(self, connections, label='latency'):
         for connection in connections:
@@ -203,6 +246,12 @@ class Network(object):
                 self.propagate(signal_information)
                 connection.snr = 10 * np.log10(signal_information.signal_power / signal_information.noise_power)
                 connection.latency = signal_information.latency
+                # set to occupied all lines crossed
+                node1 = path_label[0]
+                for node_i in path_label[1:]:
+                    line = self.lines[node1 + node_i]
+                    line.state = 'occupied'
+                    node1 = node_i
             else:
                 connection.snr = 0
                 connection.latency = None
