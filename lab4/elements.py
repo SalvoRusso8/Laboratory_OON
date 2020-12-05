@@ -4,6 +4,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import random as rand
 
 
 class Node(object):
@@ -196,8 +197,8 @@ class Network(object):
                 best_path = self.find_best_latency(connection.input, connection.output)
             if best_path is not None:
                 path_label = ''
-                for index in range(0, len(best_path), 3):
-                    path_label += best_path[index]
+                for index in range(0, len(best_path[0]), 3):
+                    path_label += best_path[0][index]
                 signal_information = Signal_information(connection.signal_power, path_label)
                 self.propagate(signal_information)
                 connection.snr = 10 * np.log10(signal_information.signal_power / signal_information.noise_power)
@@ -281,3 +282,27 @@ if __name__ == '__main__':
     network.weighted_path = df
     print('\nBest_highest_snr with path A -> B: \n', network.find_best_snr('A', 'B'))
     print('\nBest_lowest_latency with path A -> B: \n', network.find_best_latency('A', 'B'))
+    connections_snr = []
+    nodes = 'ABCDEF'
+    for i in range(0, 100):
+        input_rand = rand.choice(nodes)
+        while True:
+            output_rand = rand.choice(nodes)
+            if input_rand != output_rand:
+                break
+        connections_snr.append(Connection(input_rand, output_rand, 1e-3))
+    connections_latency = connections_snr[:]
+    # Stream with label='snr'
+    network.stream(connections_snr, 'snr')
+    snr_list = [c.snr for c in connections_snr]
+    plt.figure()
+    plt.hist(snr_list, label = 'Snr distribution')
+    plt.title('SNR distribution')
+    plt.show(block=True)
+    # Stream with label='latency'
+    network.stream(connections_latency, 'latency')
+    latency_list = [c.latency for c in connections_latency]
+    plt.figure()
+    plt.hist(latency_list, label = 'Latency distribution')
+    plt.title('Latency distribution')
+    plt.show(block=True)
