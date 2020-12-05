@@ -188,7 +188,24 @@ class Network(object):
         my_df_filtered = my_df[(my_df['path'].str[0] == input_node) & (my_df['path'].str[-1] == output_node)]
         return my_df_filtered.values[0]
 
-    
+    def stream(self, connections, label='latency'):
+        for connection in connections:
+            if label == 'snr':
+                best_path = self.find_best_snr(connection.input, connection.output)
+            else:
+                best_path = self.find_best_latency(connection.input, connection.output)
+            if best_path is not None:
+                path_label = ''
+                for index in range(0, len(best_path), 3):
+                    path_label += best_path[index]
+                signal_information = Signal_information(connection.signal_power, path_label)
+                self.propagate(signal_information)
+                connection.snr = 10 * np.log10(signal_information.signal_power / signal_information.noise_power)
+                connection.latency = signal_information.latency
+            else:
+                connection.snr = 0
+                connection.latency = None
+
 class Connection(object):
     def __init__(self, input, output, signal_power):
         self._input = input
