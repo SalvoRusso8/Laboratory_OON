@@ -103,21 +103,10 @@ class Network(object):
         found = False
         for i in my_df_filtered.values:
             path = i[0]
-            node1 = path[0]
-            free = True
-            for node_i in range(3, len(path), 3):
-                line = self.lines[node1 + path[node_i]]
-                if line.state != 'free':
-                    free = False
-                    break
-                node1 = path[node_i]
-            if free:
-                found = True
-                break
-        if found:
-            return i
-        else:
-            return None
+            channel = self.find_free_channel(path)
+            if channel is not None:
+                return i, channel
+        return None, None
 
     def find_best_latency(self, input_node, output_node):
         if output_node == input_node:
@@ -128,22 +117,30 @@ class Network(object):
         found = False
         for i in my_df_filtered.values:
             path = i[0]
-            node1 = path[0]
-            free = True
-            for node_i in range(3, len(path), 3):
-                line = self.lines[node1 + path[node_i]]
-                if line.state != 'free':
-                    free = False
+            channel = self.find_free_channel(path)
+            if channel is not None:
+                return i, channel
+        return None, None
+
+    def find_free_channel(self, path):
+        occupied = False
+        node1 = path[3]
+        first_line = self.lines[path[0] + node1]
+        for index in range(10):
+            if first_line.state[index] is None:
+                for node_i in range(6, len(path), 3):
+                    line = self.lines[node1 + path[node_i]]
+                    if line.state[index] is not None:
+                        occupied = True
+                        break
+                if not occupied:
                     break
-                node1 = path[node_i]
-            if free:
-                found = True
-                break
-        if found:
-            return i
+                occupied = False
+        if not occupied and index < len(first_line.state):
+            return index
         else:
             return None
-
+                        
     def stream(self, connections, label='latency'):
         for connection in connections:
             if label == 'snr':
