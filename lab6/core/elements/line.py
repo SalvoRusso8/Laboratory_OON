@@ -1,5 +1,7 @@
 from scipy.constants import c
-from lab5.core.info.lightpath import Lightpath
+import numpy as np
+from lab6.core.info.lightpath import Lightpath
+from lab6.core.elements.network import n_channel
 
 
 class Line(object):
@@ -8,8 +10,7 @@ class Line(object):
         self._length = line_dictionary['length']
         self._successive = {}
         self._state = []
-        for i in range(10):
-            self._state.append(None)
+        self._state = np.ones(n_channel, np.int8)
 
     @property
     def label(self):
@@ -46,12 +47,12 @@ class Line(object):
     def propagate(self, lightpath):
         if type(lightpath) is Lightpath:
             if lightpath.channel is not None:
-                self.state[lightpath.channel] = 'occupied'
-        #updating noise
+                self.state[lightpath.channel] = 0  # 0 is occupied
+        # updating noise
         signal_power = lightpath.signal_power
         noise = self.noise_generation(signal_power)
         lightpath.add_noise(noise)
-        #updating latency
+        # updating latency
         latency = self.latency_generation()
         lightpath.add_latency(latency)
 

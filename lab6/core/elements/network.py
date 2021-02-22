@@ -2,9 +2,9 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from lab5.core.elements.node import Node
-from lab5.core.elements.line import Line
-from lab5.core.info.lightpath import Lightpath
+from lab6.core.elements.node import Node
+from lab6.core.elements.line import Line
+from lab6.core.info.lightpath import Lightpath
 
 n_channel = 10
 
@@ -145,8 +145,8 @@ class Network(object):
     def find_free_channel(self, path):
         # finding the requested path in the route space, and searching for the first free channel, if present
         path_found = self.route_space[self.route_space['path'] == path]
-        for i in range(10):
-            if path_found[str(i)].values[0] is None:
+        for i in range(n_channel):
+            if path_found['channels'].values[0][i] == 1:
                 return i
         return None
 
@@ -163,28 +163,40 @@ class Network(object):
                     path_label += best_path[index]
                 lightpath = Lightpath(connection.signal_power, path_label, channel)
                 self.propagate(lightpath)
-                # setting to occupied the channel in the lines crossed and in the complete path in the route space data structure
-                for line in range(0, len(best_path) - 1, 3):
-                    current_index = self.route_space[
-                        self.route_space['path'] == best_path[line:line + 4]].index.values.astype(int)
-                    self.route_space.at[current_index, str(channel)] = 'occupied'
-                if len(best_path) >= 4:
-                    current_index = self.route_space[self.route_space['path'] == best_path].index.values.astype(int)
-                    self.route_space.at[current_index, str(channel)] = 'occupied'
+                # setting to occupied the channel in the lines crossed and in the complete path in the route space
+                # data structure
                 connection.snr = 10 * np.log10(lightpath.signal_power / lightpath.noise_power)
                 connection.latency = lightpath.latency
+                self.update_routing_space(best_path)
             else:
                 connection.snr = 0
                 connection.latency = -1
 
-    def update_routing_space(self):
-        # initializing or resetting routing space
-        for path in self.weighted_path['path']:
-            row_route_space = [
-                {'path': path, '0': None, '1': None, '2': None, '3': None, '4': None, '5': None, '6': None,
-                 '7': None, '8': None, '9': None}]
-            new_df_route_space = pd.DataFrame.from_dict(row_route_space)
-            if self.route_space.index.empty is True:
-                self.route_space = new_df_route_space.copy()
-            else:
-                self.route_space = self.route_space.append(new_df_route_space, ignore_index=True, sort=None)
+    def update_routing_space(self, best_path):
+        if best_path is None:
+            # initializing routing space
+            for path in self.weighted_path['path']: self.route_space = self.route_space.append(
+                {'path': path, 'channels': [1] * n_channel}, ignore_index=True, sort=None)
+        else:
+            # updating routing space, starting from the first line of the path
+            route_space_index = self.route_space[self.route_space['path'] == best_path].index.values[0]
+            first_line = self.lines[best_path[0] + best_path[3]]
+            self.route_space.at[route_space_index, 'channels'] = first_line.state
+
+            for path in self.route_space['path']:
+                node1 = 3
+                first_line = self.lines[path[0] + path[node1]]
+                line_state = first_line.state
+                for node_i in range(6, len(path), 3):
+                    line = self.lines[path[node1] + path[node_i]]
+                    line_state = np.multiply(line_state, line.state)
+                    line_state = np.multiply(self.nodes[path[node1]].switching_matrix[path[node1 - 3]][path[node_i]],
+                                             line_state)
+                    # if the path is the one updated in the stream() method, also the the entries of the crossed lines
+                    # must be updated in the route space
+                    if best_path == path:
+                        index = self.route_space[self.route_space['path'] == path[node1:node_i]].index.values[0]
+                        self.route_space.at[index, 'channels'] = line.state
+                    node1 = node_i
+            route_space_index = self.route_space[self.route_space['path'] == path].index.values[0]
+            self.route_space.at[route_space_index, 'channels'] = line_state
