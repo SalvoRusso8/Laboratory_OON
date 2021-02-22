@@ -11,7 +11,7 @@ from scipy.special import erfcinv as erfcinv
 
 n_channel = 10
 ber_t = 1e-3
-Rs = 32e9   # symbol rate [Hz]
+Rs = 32e9  # symbol rate [Hz]
 Bn = 12.5e9  # Noise Bandwidth [GHz]
 
 
@@ -100,7 +100,7 @@ class Network(object):
             for inner_path in inner_paths[str(i)]:
                 inner_paths[str(i + 1)] += [inner_path + cross_node for cross_node in cross_nodes
                                             if ((inner_path[-1] + cross_node in cross_lines) & (
-                            cross_node not in inner_path))]
+                                                cross_node not in inner_path))]
         paths = []
         for i in range(len(cross_nodes) + 1):
             for path in inner_paths[str(i)]:

@@ -42,9 +42,9 @@ class Node(object):
     def switching_matrix(self, switching_matrix):
         self._switching_matrix = switching_matrix
 
-    @property
-    def transceiver(self):
-        return self._transceiver
+    @transceiver.setter
+    def transceiver(self, transceiver):
+        self._transceiver= transceiver
 
     def propagate(self, signal_information, previous_node):
         path = signal_information.path
