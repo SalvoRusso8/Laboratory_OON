@@ -1,4 +1,4 @@
-from scipy.constants import c
+from scipy.constants import c, h
 import numpy as np
 from lab9.core.info.lightpath import Lightpath
 from math import ceil
@@ -7,6 +7,8 @@ n_channel = 10
 distance_amp = 80e3  # [m]
 gain_const = 16  # [dB]
 noise_figure_const = 3  # [dB]
+f = 193.414e12  # [Hz] C-band center
+Bn = 12.5e9  # [Hz] Noise Bandwidth
 
 class Line(object):
     def __init__(self, line_dictionary):
@@ -81,3 +83,8 @@ class Line(object):
         else:
             lightpath = node.propagate(lightpath, None)
         return lightpath
+
+    def ase_generation(self):
+        linear_nf = 10**(self.noise_figure/10)
+        linear_gain = 10**(self.gain/10)
+        return self.n_amplifiers * (h * f * Bn * linear_nf * (linear_gain - 1))
