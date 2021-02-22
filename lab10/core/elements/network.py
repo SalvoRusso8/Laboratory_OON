@@ -234,22 +234,25 @@ class Network(object):
                 route_space_index = self.route_space[self.route_space['path'] == path].index.values[0]
                 self.route_space.at[route_space_index, 'channels'] = line_state
 
-    def calculate_bit_rate(self, path, strategy):
-        gsnr_db = self.weighted_path[self.weighted_path['path'] == path]['snr'].values[0]
+    def calculate_bit_rate(self, lightpath, strategy):
+        path = ''
+        for node in lightpath.path:
+            path += node + '->'
+        gsnr_db = self.weighted_path[self.weighted_path['path'] == path[:-2]]['snr'].values[0]
         gsnr = 10 ** (gsnr_db / 10)
         if strategy == 'fixed_rate':
-            if gsnr >= 2 * ((erfcinv(2 * ber_t)) ** 2) * Rs / Bn:
+            if gsnr >= 2 * ((erfcinv(2 * ber_t)) ** 2) * lightpath.symbol_rate / Bn:
                 return 100e9
             else:
                 return 0
         elif strategy == 'flex_rate':
-            if gsnr < 2 * ((erfcinv(2 * ber_t)) ** 2) * Rs / Bn:
+            if gsnr < 2 * ((erfcinv(2 * ber_t)) ** 2) * lightpath.symbol_rate / Bn:
                 return 0
-            elif gsnr < 14 / 3 * ((erfcinv(3 / 2 * ber_t)) ** 2) * Rs / Bn:
+            elif gsnr < 14 / 3 * ((erfcinv(3 / 2 * ber_t)) ** 2) * lightpath.symbol_rate / Bn:
                 return 100e9
-            elif gsnr < 10 * ((erfcinv(8 / 3 * ber_t)) ** 2) * Rs / Bn:
+            elif gsnr < 10 * ((erfcinv(8 / 3 * ber_t)) ** 2) * lightpath.symbol_rate / Bn:
                 return 200e9
             else:
                 return 400e9
         elif strategy == 'shannon':
-            return 2 * Rs * np.log2(1 + (gsnr * Bn / Rs))
+            return 2 * lightpath.symbol_rate * np.log2(1 + (gsnr * Bn / lightpath.symbol_rate))
