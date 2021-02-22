@@ -9,9 +9,9 @@ import random as rand
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    network = Network('../resources/nodes.json')
-    network.connect()
-    node_labels = network.nodes.keys()
+    network_snr = Network('../resources/nodes.json')
+    network_snr.connect()
+    node_labels = network_snr.nodes.keys()
     pairs = []
     for label1 in node_labels:
         for label2 in node_labels:
@@ -25,13 +25,13 @@ if __name__ == '__main__':
             noises = []
             snrs = []
             for pair in pairs:
-                for path in network.find_paths(pair[0], pair[1]):
+                for path in network_snr.find_paths(pair[0], pair[1]):
                     path_string = ''
                     for node in path:
                         path_string += node + '->'
                     paths.append(path_string[:-2])
                     signal_information = SignalInformation(1e-3, path)
-                    signal_information = network.propagate(signal_information)
+                    signal_information = network_snr.propagate(signal_information)
                     latencies.append(signal_information.latency)
                     noises.append(signal_information.noise_power)
                     snrs.append(
@@ -42,9 +42,9 @@ if __name__ == '__main__':
             df['noise'] = noises
             df['snr'] = snrs
 
-    network.draw()
-    network.weighted_path = df
-    network.update_routing_space()
+    network_snr.draw()
+    network_snr.weighted_path = df
+    network_snr.update_routing_space(None)
 
     connections_snr = []
     nodes = 'ABCDEF'
@@ -58,22 +58,25 @@ if __name__ == '__main__':
     connections_latency = deepcopy(connections_snr)
 
     # Stream with label='snr'
-    network.stream(connections_snr, 'snr')
+    network_snr.stream(connections_snr, 'snr')
     snr_list = [c.snr for c in connections_snr]
     plt.figure()
     plt.hist(snr_list, label='Snr distribution')
-    plt.title('SNR distribution')
+    plt.title('[Lab6] SNR distribution')
     plt.ylabel('#Connections')
     plt.xlabel('SNR [dB]')
     plt.show(block=True)
 
     # Stream with label='latency'
-    network.update_routing_space()
-    network.stream(connections_latency, 'latency')
+    network_latency = Network('../resources/nodes.json')
+    network_latency.connect()
+    network_latency.weighted_path = df
+    network_latency.update_routing_space(None)
+    network_latency.stream(connections_latency, 'latency')
     latency_list = [c.latency * 1e3 for c in connections_latency]
     plt.figure()
     plt.hist(latency_list, label='Latency distribution')
-    plt.title('Latency distribution')
+    plt.title('[Lab6] Latency distribution')
     plt.ylabel('#Connections')
     plt.xlabel('Latency [ms]')
     plt.show(block=True)

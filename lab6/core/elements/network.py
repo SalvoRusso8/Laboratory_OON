@@ -62,10 +62,6 @@ class Network(object):
         lines_dictionary = self.lines
         for node_label in nodes_dictionary:
             node = nodes_dictionary[node_label]
-            line_label = node_label + node1
-            line = lines_dictionary[line_label]
-            line.successive[node1] = nodes_dictionary[node1]
-            node.successive[line_label] = lines_dictionary[line_label]
             # initializing the node switching matrix
             node.switching_matrix = {}
             for node1 in node.connected_nodes:
@@ -75,6 +71,10 @@ class Network(object):
                         node.switching_matrix[node1][node2] = np.zeros(n_channel, np.int8)
                     else:
                         node.switching_matrix[node1][node2] = np.ones(n_channel, np.int8)
+                line_label = node_label + node1
+                line = lines_dictionary[line_label]
+                line.successive[node1] = nodes_dictionary[node1]
+                node.successive[line_label] = lines_dictionary[line_label]
 
     def find_paths(self, label1, label2):
         cross_nodes = [key for key in self.nodes.keys()
@@ -195,7 +195,7 @@ class Network(object):
                     # if the path is the one updated in the stream() method, also the the entries of the crossed lines
                     # must be updated in the route space
                     if best_path == path:
-                        index = self.route_space[self.route_space['path'] == path[node1:node_i]].index.values[0]
+                        index = self.route_space[self.route_space['path'] == path[node1:node_i + 1]].index.values[0]
                         self.route_space.at[index, 'channels'] = line.state
                     node1 = node_i
             route_space_index = self.route_space[self.route_space['path'] == path].index.values[0]
