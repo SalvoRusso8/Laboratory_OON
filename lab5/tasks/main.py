@@ -59,6 +59,7 @@ if __name__ == '__main__':
 
     # Stream with label='snr'
     network_snr.stream(connections_snr, 'snr')
+    print(network_snr.route_space)
     snr_list = [c.snr for c in connections_snr]
     plt.figure()
     plt.hist(snr_list, label='Snr distribution')
