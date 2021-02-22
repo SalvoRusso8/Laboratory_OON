@@ -349,9 +349,9 @@ if __name__ == '__main__':
     plt.title('SNR distribution')
     plt.show(block=True)
     # Stream with label='latency'
-    network.stream(connections_latency, 'latency')
+    '''network.stream(connections_latency, 'latency')
     latency_list = [c.latency for c in connections_latency]
     plt.figure()
     plt.hist(latency_list, label = 'Latency distribution')
     plt.title('Latency distribution')
-    plt.show(block=True)
+    plt.show(block=True)'''
