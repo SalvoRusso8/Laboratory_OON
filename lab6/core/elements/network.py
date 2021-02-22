@@ -6,6 +6,8 @@ from lab5.core.elements.node import Node
 from lab5.core.elements.line import Line
 from lab5.core.info.lightpath import Lightpath
 
+n_channel = 10
+
 
 class Network(object):
     def __init__(self, file):
@@ -13,30 +15,8 @@ class Network(object):
         self._lines = {}
         nodes_json = json.load(open(file, 'r'))
         self._weighted_path = pd.DataFrame()
-        self._route_space = pd.DataFrame()
-
-        paths = []
-        channel_0 = []
-        channel_1 = []
-        channel_2 = []
-        channel_3 = []
-        channel_4 = []
-        channel_5 = []
-        channel_6 = []
-        channel_7 = []
-        channel_8 = []
-        channel_9 = []
-        self._route_space['path'] = paths
-        self._route_space['0'] = channel_0
-        self._route_space['1'] = channel_1
-        self._route_space['2'] = channel_2
-        self._route_space['3'] = channel_3
-        self._route_space['4'] = channel_4
-        self._route_space['5'] = channel_5
-        self._route_space['6'] = channel_6
-        self._route_space['7'] = channel_7
-        self._route_space['8'] = channel_8
-        self._route_space['9'] = channel_9
+        columns_name = ["path", "channels"]
+        self._route_space = pd.DataFrame(columns=columns_name)
 
         for label in nodes_json:
             node_dictionary = nodes_json[label]
@@ -82,11 +62,19 @@ class Network(object):
         lines_dictionary = self.lines
         for node_label in nodes_dictionary:
             node = nodes_dictionary[node_label]
-            for connected_node in node.connected_nodes:
-                line_label = node_label + connected_node
-                line = lines_dictionary[line_label]
-                line.successive[connected_node] = nodes_dictionary[connected_node]
-                node.successive[line_label] = lines_dictionary[line_label]
+            line_label = node_label + node1
+            line = lines_dictionary[line_label]
+            line.successive[node1] = nodes_dictionary[node1]
+            node.successive[line_label] = lines_dictionary[line_label]
+            # initializing the node switching matrix
+            node.switching_matrix = {}
+            for node1 in node.connected_nodes:
+                node.switching_matrix[node1] = {}
+                for node2 in node.connected_nodes:
+                    if node2 == node1:
+                        node.switching_matrix[node1][node2] = np.zeros(n_channel, np.int8)
+                    else:
+                        node.switching_matrix[node1][node2] = np.ones(n_channel, np.int8)
 
     def find_paths(self, label1, label2):
         cross_nodes = [key for key in self.nodes.keys()
@@ -98,7 +86,7 @@ class Network(object):
             for inner_path in inner_paths[str(i)]:
                 inner_paths[str(i + 1)] += [inner_path + cross_node for cross_node in cross_nodes
                                             if ((inner_path[-1] + cross_node in cross_lines) & (
-                                cross_node not in inner_path))]
+                            cross_node not in inner_path))]
         paths = []
         for i in range(len(cross_nodes) + 1):
             for path in inner_paths[str(i)]:
