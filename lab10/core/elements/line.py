@@ -120,7 +120,13 @@ class Line(object):
         return self.n_amplifiers * (h * f * Bn * linear_nf * (linear_gain - 1))
 
     def nli_generation(self, lightpath):
-        eta_nli = 16 / (27 * np.pi) * np.log((np.pi ** 2) / 2 * self.beta2 * (lightpath.symbol_rate ** 2)
+        return lightpath.signal_power ** 3 * self.get_eta_nli(lightpath) * self.n_span * Bn
+
+    def get_eta_nli(self, lightpath):
+        return 16 / (27 * np.pi) * np.log((np.pi ** 2) / 2 * self.beta2 * (lightpath.symbol_rate ** 2)
                                              / self.alpha * (n_channel ** (2 * lightpath.symbol_rate / lightpath.df))) \
                   * (self.alpha / self.beta2 * ((self.gamma ** 2) * (self.Leff ** 2) / (lightpath.symbol_rate ** 3)))
-        return lightpath.signal_power ** 3 * eta_nli * self.n_span * Bn
+
+    def optimized_launch_power(self, lightpath):
+        # Optimal power = (Pase/ (2 * eta_nli * n_span*Bn)) ^ 1/3
+        return (self.ase_generation() / (2 / self.get_eta_nli(lightpath) * self.n_span * Bn)) ** (1/3)
