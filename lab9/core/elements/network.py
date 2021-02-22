@@ -7,7 +7,7 @@ import pandas as pd
 from lab8.core.elements.node import Node
 from lab8.core.elements.line import Line
 from lab8.core.info.lightpath import Lightpath
-from scipy.special import erfcinv as erfcinv
+from scipy.special import erfcinv
 
 n_channel = 10
 ber_t = 1e-3

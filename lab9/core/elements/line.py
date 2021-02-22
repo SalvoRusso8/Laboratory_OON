@@ -9,6 +9,10 @@ gain_const = 16  # [dB]
 noise_figure_const = 3  # [dB]
 f = 193.414e12  # [Hz] C-band center
 Bn = 12.5e9  # [Hz] Noise Bandwidth
+alpha_db = 0.2  # [dB/Km]
+beta2 = 2.13e-26  # [(mHz^2)^-1]
+gamma = 1.27e-3  # [(mW)^-1]
+
 
 class Line(object):
     def __init__(self, line_dictionary):
@@ -20,6 +24,11 @@ class Line(object):
         self._n_amplifiers = (ceil(self.length / distance_amp) - 1) + 2  # +2 is because of booster and preamp
         self._gain = gain_const
         self._noise_figure = noise_figure_const
+        self._alpha = (alpha_db / 1e3) / (20 * np.log10(np.exp(1)))
+        self._beta2 = beta2
+        self._gamma = gamma
+        self._leff = 1 / (2 * self._alpha)
+        self._n_span = self._n_amplifiers - 1
 
     @property
     def label(self):
@@ -48,6 +57,26 @@ class Line(object):
     @property
     def noise_figure(self):
         return self._noise_figure
+
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @property
+    def beta2(self):
+        return self._beta2
+
+    @property
+    def gamma(self):
+        return self._gamma
+
+    @property
+    def leff(self):
+        return self._leff
+
+    @property
+    def n_span(self):
+        return self._n_span
 
     @successive.setter
     def successive(self, successive):
@@ -85,6 +114,12 @@ class Line(object):
         return lightpath
 
     def ase_generation(self):
-        linear_nf = 10**(self.noise_figure/10)
-        linear_gain = 10**(self.gain/10)
+        linear_nf = 10 ** (self.noise_figure / 10)
+        linear_gain = 10 ** (self.gain / 10)
         return self.n_amplifiers * (h * f * Bn * linear_nf * (linear_gain - 1))
+
+    def nli_generation(self, lightpath):
+        eta_nli = 16 / (27 * np.pi) * np.log((np.pi ** 2) / 2 * self.beta2 * (lightpath.symbol_rate ** 2)
+                                             / self.alpha * (n_channel ** (2 * lightpath.symbol_rate / lightpath.df))) \
+                  * (self.alpha / self.beta2 * ((self.gamma ** 2) * (self.Leff ** 2) / (lightpath.symbol_rate ** 3)))
+        return lightpath.signal_power ** 3 * eta_nli * self.n_span * Bn

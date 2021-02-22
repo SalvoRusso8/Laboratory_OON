@@ -6,6 +6,7 @@ class Connection(object):
         self._latency = 0.00
         self._snr = 0.00
         self._bit_rate = 0
+
     @property
     def input(self):
         return self._input
