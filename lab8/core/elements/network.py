@@ -29,6 +29,10 @@ class Network(object):
             node_dictionary = nodes_json[label]
             node_dictionary['label'] = label
             node = Node(node_dictionary)
+            if 'transceiver' in nodes_json[label].keys():
+                node.transceiver = nodes_json[label]['transceiver']
+            else:
+                node.transceiver = 'fixed-rate'
             self._nodes[label] = node
             for connected_nodes_label in node_dictionary['connected_nodes']:
                 line_dictionary = {}
