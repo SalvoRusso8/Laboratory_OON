@@ -1,9 +1,12 @@
 from scipy.constants import c
 import numpy as np
-from lab8.core.info.lightpath import Lightpath
+from lab9.core.info.lightpath import Lightpath
+from math import ceil
 
 n_channel = 10
-
+distance_amp = 80e3  # [m]
+gain_const = 16  # [dB]
+noise_figure_const = 3  # [dB]
 
 class Line(object):
     def __init__(self, line_dictionary):
@@ -12,6 +15,9 @@ class Line(object):
         self._successive = {}
         self._state = []
         self._state = np.ones(n_channel, np.int8)
+        self._n_amplifiers = (ceil(self.length / distance_amp) - 1) + 2  # +2 is because of booster and preamp
+        self._gain = gain_const
+        self._noise_figure = noise_figure_const
 
     @property
     def label(self):
@@ -28,6 +34,18 @@ class Line(object):
     @property
     def state(self):
         return self._state
+
+    @property
+    def n_amplifiers(self):
+        return self._n_amplifiers
+
+    @property
+    def gain(self):
+        return self._gain
+
+    @property
+    def noise_figure(self):
+        return self._noise_figure
 
     @successive.setter
     def successive(self, successive):

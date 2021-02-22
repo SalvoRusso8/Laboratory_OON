@@ -1,4 +1,4 @@
-from lab8.core.info.lightpath import Lightpath
+from lab9.core.info.lightpath import Lightpath
 
 
 class Node(object):
