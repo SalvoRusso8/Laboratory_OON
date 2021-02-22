@@ -1,6 +1,6 @@
 from scipy.constants import c
 import numpy as np
-from lab7.core.info.lightpath import Lightpath
+from lab8.core.info.lightpath import Lightpath
 
 n_channel = 10
 

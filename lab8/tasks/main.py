@@ -1,9 +1,9 @@
 import csv
 from copy import deepcopy
 
-from lab7.core.elements.network import Network
-from lab7.core.info.signalInformation import SignalInformation
-from lab7.core.elements.connection import Connection
+from lab8.core.elements.network import Network
+from lab8.core.info.signalInformation import SignalInformation
+from lab8.core.elements.connection import Connection
 import pandas as pd
 import numpy as np
 import random as rand

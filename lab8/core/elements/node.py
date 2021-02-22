@@ -1,4 +1,5 @@
-from lab7.core.info.lightpath import Lightpath
+from lab8.core.info.lightpath import Lightpath
+
 
 class Node(object):
     def __init__(self, node_dictionary):

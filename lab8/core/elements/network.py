@@ -4,11 +4,15 @@ from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from lab7.core.elements.node import Node
-from lab7.core.elements.line import Line
-from lab7.core.info.lightpath import Lightpath
+from lab8.core.elements.node import Node
+from lab8.core.elements.line import Line
+from lab8.core.info.lightpath import Lightpath
+from scipy.special import erfcinv as erfcinv
 
 n_channel = 10
+ber_t = 1e-3
+Rs = 32e9   # symbol rate [Hz]
+Bn = 12.5e9  # Noise Bandwidth [GHz]
 
 
 class Network(object):
@@ -218,3 +222,23 @@ class Network(object):
             else:
                 route_space_index = self.route_space[self.route_space['path'] == path].index.values[0]
                 self.route_space.at[route_space_index, 'channels'] = line_state
+
+    def calculate_bit_rate(self, path, strategy):
+        gsnr_db = self.weighted_path[self.weighted_path['path'] == path]['snr'].values[0]
+        gsnr = 10 ** (gsnr_db / 10)
+        if strategy == 'fixed_rate':
+            if gsnr >= 2 * ((erfcinv(2 * ber_t)) ** 2) * Rs / Bn:
+                return 100e9
+            else:
+                return 0
+        elif strategy == 'flex_rate':
+            if gsnr < 2 * ((erfcinv(2 * ber_t)) ** 2) * Rs / Bn:
+                return 0
+            elif gsnr < 14 / 3 * ((erfcinv(3 / 2 * ber_t)) ** 2) * Rs / Bn:
+                return 100e9
+            elif gsnr < 10 * ((erfcinv(8 / 3 * ber_t)) ** 2) * Rs / Bn:
+                return 200e9
+            else:
+                return 400e9
+        elif strategy == 'shannon':
+            return 2 * Rs * np.log2(1 + (gsnr * Bn / Rs))
