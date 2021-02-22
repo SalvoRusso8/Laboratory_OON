@@ -103,7 +103,7 @@ class Network(object):
     def propagate(self, signal_information):
         path = signal_information.path
         first_node = self.nodes[path[0]]
-        propagated_signal_information = first_node.propagate(signal_information)
+        propagated_signal_information = first_node.propagate(signal_information, None)
         return propagated_signal_information
 
     def draw(self):
@@ -177,32 +177,44 @@ class Network(object):
             else:
                 connection.snr = 0
                 connection.latency = -1
+        self.restore_network()
+
+    def restore_network(self):
+        self.route_space = self.route_space[0:0]
+        nodes_dictionary = self.nodes
+        lines_dictionary = self.lines
+        for label in nodes_dictionary:
+            node = nodes_dictionary[label]
+            node.switching_matrix = deepcopy(self.switching_matrix[label])
+        for label in lines_dictionary:
+            line = lines_dictionary[label]
+            line.state = np.ones(n_channel, np.int8)
+        self.update_routing_space(None)
 
     def update_routing_space(self, best_path):
-        if best_path is None:
-            # initializing routing space
-            for path in self.weighted_path['path']: self.route_space = self.route_space.append(
-                {'path': path, 'channels': [1] * n_channel}, ignore_index=True, sort=None)
-        else:
-            # updating routing space, starting from the first line of the path
+        if best_path is not None:
+            # routing space not empty, so updating the first line of the path
             route_space_index = self.route_space[self.route_space['path'] == best_path].index.values[0]
             first_line = self.lines[best_path[0] + best_path[3]]
             self.route_space.at[route_space_index, 'channels'] = first_line.state
-
-            for path in self.route_space['path']:
-                node1 = 3
-                first_line = self.lines[path[0] + path[node1]]
-                line_state = first_line.state
-                for node_i in range(6, len(path), 3):
-                    line = self.lines[path[node1] + path[node_i]]
-                    line_state = np.multiply(line_state, line.state)
-                    line_state = np.multiply(self.nodes[path[node1]].switching_matrix[path[node1 - 3]][path[node_i]],
-                                             line_state)
-                    # if the path is the one updated in the stream() method, also the the entries of the crossed lines
-                    # must be updated in the route space
-                    if best_path == path:
-                        index = self.route_space[self.route_space['path'] == path[node1:node_i + 1]].index.values[0]
-                        self.route_space.at[index, 'channels'] = line.state
-                    node1 = node_i
-            route_space_index = self.route_space[self.route_space['path'] == path].index.values[0]
-            self.route_space.at[route_space_index, 'channels'] = line_state
+        for path in self.weighted_path['path']:
+            node1 = 3
+            first_line = self.lines[path[0] + path[node1]]
+            line_state = first_line.state
+            for node_i in range(6, len(path), 3):
+                line = self.lines[path[node1] + path[node_i]]
+                line_state = np.multiply(line_state, line.state)
+                line_state = np.multiply(self.nodes[path[node1]].switching_matrix[path[node1 - 3]][path[node_i]],
+                                         line_state)
+                # if the path is the one updated in the stream() method, also the the entries of the crossed lines
+                # must be updated in the route space
+                if best_path is not None and best_path == path:
+                    index = self.route_space[self.route_space['path'] == path[node1:node_i + 1]].index.values[0]
+                    self.route_space.at[index, 'channels'] = line.state
+                node1 = node_i
+            if best_path is None:
+                self.route_space = self.route_space.append({'path': path, 'channels': line_state},
+                                                           ignore_index=True, sort=None)
+            else:
+                route_space_index = self.route_space[self.route_space['path'] == path].index.values[0]
+                self.route_space.at[route_space_index, 'channels'] = line_state

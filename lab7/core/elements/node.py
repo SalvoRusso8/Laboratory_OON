@@ -1,3 +1,5 @@
+from lab7.core.info.lightpath import Lightpath
+
 class Node(object):
     def __init__(self, node_dictionary):
         self._label = node_dictionary['label']
@@ -34,10 +36,19 @@ class Node(object):
     def switching_matrix(self, switching_matrix):
         self._switching_matrix = switching_matrix
 
-    def propagate(self, signal_information):
+    def propagate(self, signal_information, previous_node):
         path = signal_information.path
         if len(path) > 1:
             line_label = path[:2]
+            if type(signal_information) is Lightpath:
+                # making switching matrix dynamic
+                if previous_node is not None:
+                    channels = self.switching_matrix[previous_node][line_label[1]]
+                    channels[signal_information.channel] = 0
+                    if signal_information.channel != 9:
+                        channels[signal_information.channel + 1] = 0
+                    if signal_information.channel != 0:
+                        channels[signal_information.channel - 1] = 0
             line = self.successive[line_label]
             signal_information.next()
             signal_information = line.propagate(signal_information)

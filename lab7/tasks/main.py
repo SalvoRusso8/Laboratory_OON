@@ -53,6 +53,15 @@ if __name__ == '__main__':
         for row in csvReader:
             connections_full.append(Connection(row[0], row[1], float(row[2])))
 
+    '''nodes = 'ABCDEF'
+    for i in range(0, 100):
+        input_rand = rand.choice(nodes)
+        while True:
+            output_rand = rand.choice(nodes)
+            if input_rand != output_rand:
+                break
+        connections_full.append(Connection(input_rand, output_rand, 1e-3))'''
+
     connections_not_full = deepcopy(connections_full)
 
     # Stream with label='snr'
@@ -69,7 +78,7 @@ if __name__ == '__main__':
     network_not_full.connect()
     network_not_full.weighted_path = df
     network_not_full.update_routing_space(None)
-    network_full.stream(connections_not_full, 'snr')
+    network_not_full.stream(connections_not_full, 'snr')
     snr_not_full_list = [c.snr for c in connections_not_full]
     plt.figure()
     plt.hist(snr_not_full_list, label='Snr distribution')
@@ -78,14 +87,3 @@ if __name__ == '__main__':
     plt.xlabel('SNR [dB]')
     plt.show(block=True)
 
-    '''
-    # Stream with label='latency'
-    network.update_routing_space()
-    network.stream(connections_latency, 'latency')
-    latency_list = [c.latency * 1e3 for c in connections_latency]
-    plt.figure()
-    plt.hist(latency_list, label='Latency distribution')
-    plt.title('Latency distribution')
-    plt.ylabel('#Connections')
-    plt.xlabel('Latency [ms]')
-    plt.show(block=True)'''

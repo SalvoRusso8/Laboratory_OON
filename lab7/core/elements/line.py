@@ -4,6 +4,7 @@ from lab7.core.info.lightpath import Lightpath
 
 n_channel = 10
 
+
 class Line(object):
     def __init__(self, line_dictionary):
         self._label = line_dictionary['label']
@@ -57,5 +58,8 @@ class Line(object):
         lightpath.add_latency(latency)
 
         node = self.successive[lightpath.path[0]]
-        signal_information = node.propagate(lightpath)
-        return signal_information
+        if type(lightpath) is Lightpath:
+            lightpath = node.propagate(lightpath, self.label[0])
+        else:
+            lightpath = node.propagate(lightpath, None)
+        return lightpath
