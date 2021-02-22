@@ -1,10 +1,12 @@
 import json
+from copy import deepcopy
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from lab6.core.elements.node import Node
-from lab6.core.elements.line import Line
-from lab6.core.info.lightpath import Lightpath
+from lab7.core.elements.node import Node
+from lab7.core.elements.line import Line
+from lab7.core.info.lightpath import Lightpath
 
 n_channel = 10
 
@@ -17,6 +19,7 @@ class Network(object):
         self._weighted_path = pd.DataFrame()
         columns_name = ["path", "channels"]
         self._route_space = pd.DataFrame(columns=columns_name)
+        self._switching_matrix = {}
 
         for label in nodes_json:
             node_dictionary = nodes_json[label]
@@ -32,6 +35,8 @@ class Network(object):
                 line_dictionary['length'] = np.sqrt(np.sum((node_position - connected_nodes_position) ** 2))
                 line = Line(line_dictionary)
                 self._lines[line_label] = line
+            # importing switching matrix
+            self._switching_matrix[label] = node_dictionary['switching_matrix']
 
     @property
     def nodes(self):
@@ -49,6 +54,10 @@ class Network(object):
     def route_space(self):
         return self._route_space
 
+    @property
+    def switching_matrix(self):
+        return self._switching_matrix
+
     @weighted_path.setter
     def weighted_path(self, weighted_path):
         self._weighted_path = weighted_path
@@ -57,24 +66,21 @@ class Network(object):
     def route_space(self, route_space):
         self._route_space = route_space
 
+    @switching_matrix.setter
+    def switching_matrix(self, switching_matrix):
+        self._switching_matrix = switching_matrix
+
     def connect(self):
         nodes_dictionary = self.nodes
         lines_dictionary = self.lines
         for node_label in nodes_dictionary:
-            node = nodes_dictionary[node_label]
-            line_label = node_label + node1
-            line = lines_dictionary[line_label]
-            line.successive[node1] = nodes_dictionary[node1]
-            node.successive[line_label] = lines_dictionary[line_label]
-            # initializing the node switching matrix
-            node.switching_matrix = {}
-            for node1 in node.connected_nodes:
-                node.switching_matrix[node1] = {}
-                for node2 in node.connected_nodes:
-                    if node2 == node1:
-                        node.switching_matrix[node1][node2] = np.zeros(n_channel, np.int8)
-                    else:
-                        node.switching_matrix[node1][node2] = np.ones(n_channel, np.int8)
+            node1 = nodes_dictionary[node_label]
+            node1.switching_matrix = deepcopy(self.switching_matrix[node_label])
+            for node2_label in node1.connected_nodes:
+                line_label = node_label + node2_label
+                line = lines_dictionary[line_label]
+                line.successive[node2_label] = nodes_dictionary[node2_label]
+                node1.successive[line_label] = lines_dictionary[line_label]
 
     def find_paths(self, label1, label2):
         cross_nodes = [key for key in self.nodes.keys()
@@ -195,7 +201,7 @@ class Network(object):
                     # if the path is the one updated in the stream() method, also the the entries of the crossed lines
                     # must be updated in the route space
                     if best_path == path:
-                        index = self.route_space[self.route_space['path'] == path[node1:node_i]].index.values[0]
+                        index = self.route_space[self.route_space['path'] == path[node1:node_i + 1]].index.values[0]
                         self.route_space.at[index, 'channels'] = line.state
                     node1 = node_i
             route_space_index = self.route_space[self.route_space['path'] == path].index.values[0]

@@ -1,17 +1,18 @@
+import csv
 from copy import deepcopy
 
-from lab5.core.elements.network import Network
-from lab5.core.info.signalInformation import SignalInformation
-from lab5.core.elements.connection import Connection
+from lab7.core.elements.network import Network
+from lab7.core.info.signalInformation import SignalInformation
+from lab7.core.elements.connection import Connection
 import pandas as pd
 import numpy as np
 import random as rand
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    network = Network('../resources/nodes.json')
-    network.connect()
-    node_labels = network.nodes.keys()
+    network_full = Network('../resources/nodes_full.json')
+    network_full.connect()
+    node_labels = network_full.nodes.keys()
     pairs = []
     for label1 in node_labels:
         for label2 in node_labels:
@@ -25,13 +26,13 @@ if __name__ == '__main__':
             noises = []
             snrs = []
             for pair in pairs:
-                for path in network.find_paths(pair[0], pair[1]):
+                for path in network_full.find_paths(pair[0], pair[1]):
                     path_string = ''
                     for node in path:
                         path_string += node + '->'
                     paths.append(path_string[:-2])
                     signal_information = SignalInformation(1e-3, path)
-                    signal_information = network.propagate(signal_information)
+                    signal_information = network_full.propagate(signal_information)
                     latencies.append(signal_information.latency)
                     noises.append(signal_information.noise_power)
                     snrs.append(
@@ -42,31 +43,42 @@ if __name__ == '__main__':
             df['noise'] = noises
             df['snr'] = snrs
 
-    network.draw()
-    network.weighted_path = df
-    network.update_routing_space()
+    network_full.draw()
+    network_full.weighted_path = df
+    network_full.update_routing_space(None)
 
-    connections_snr = []
-    nodes = 'ABCDEF'
-    for i in range(0, 100):
-        input_rand = rand.choice(nodes)
-        while True:
-            output_rand = rand.choice(nodes)
-            if input_rand != output_rand:
-                break
-        connections_snr.append(Connection(input_rand, output_rand, 1e-3))
-    connections_latency = deepcopy(connections_snr)
+    connections_full = []
+    with open('../resources/connections_test.csv') as connections_file:
+        csvReader = csv.reader(connections_file)
+        for row in csvReader:
+            connections_full.append(Connection(row[0], row[1], float(row[2])))
+
+    connections_not_full = deepcopy(connections_full)
 
     # Stream with label='snr'
-    network.stream(connections_snr, 'snr')
-    snr_list = [c.snr for c in connections_snr]
+    network_full.stream(connections_full, 'snr')
+    snr_full_list = [c.snr for c in connections_full]
     plt.figure()
-    plt.hist(snr_list, label='Snr distribution')
-    plt.title('SNR distribution')
+    plt.hist(snr_full_list, label='Snr distribution')
+    plt.title('[Lab7] SNR distribution with full switching matrix')
     plt.ylabel('#Connections')
     plt.xlabel('SNR [dB]')
     plt.show(block=True)
 
+    network_not_full = Network('../resources/nodes_not_full.json')
+    network_not_full.connect()
+    network_not_full.weighted_path = df
+    network_not_full.update_routing_space(None)
+    network_full.stream(connections_not_full, 'snr')
+    snr_not_full_list = [c.snr for c in connections_not_full]
+    plt.figure()
+    plt.hist(snr_not_full_list, label='Snr distribution')
+    plt.title('[Lab7] SNR distribution with not full switching matrix')
+    plt.ylabel('#Connections')
+    plt.xlabel('SNR [dB]')
+    plt.show(block=True)
+
+    '''
     # Stream with label='latency'
     network.update_routing_space()
     network.stream(connections_latency, 'latency')
@@ -76,4 +88,4 @@ if __name__ == '__main__':
     plt.title('Latency distribution')
     plt.ylabel('#Connections')
     plt.xlabel('Latency [ms]')
-    plt.show(block=True)
+    plt.show(block=True)'''

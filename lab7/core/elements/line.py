@@ -1,8 +1,8 @@
 from scipy.constants import c
 import numpy as np
-from lab6.core.info.lightpath import Lightpath
-from lab6.core.elements.network import n_channel
+from lab7.core.info.lightpath import Lightpath
 
+n_channel = 10
 
 class Line(object):
     def __init__(self, line_dictionary):
