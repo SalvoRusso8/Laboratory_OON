@@ -175,13 +175,20 @@ class Network(object):
                 path_label = ''
                 for index in range(0, len(best_path), 3):
                     path_label += best_path[index]
-                lightpath = Lightpath(connection.signal_power, path_label, channel)
-                self.propagate(lightpath)
-                # setting to occupied the channel in the lines crossed and in the complete path in the route space
-                # data structure
-                connection.snr = 10 * np.log10(lightpath.signal_power / lightpath.noise_power)
-                connection.latency = lightpath.latency
-                self.update_routing_space(best_path)
+                bit_rate = self.calculate_bit_rate(best_path, self.nodes[path_label[0]].transceiver)
+                if bit_rate == 0:
+                    connection.snr = 0
+                    connection.latency = -1
+                    connection.bit_rate = 0
+                else:
+                    lightpath = Lightpath(connection.signal_power, path_label, channel)
+                    self.propagate(lightpath)
+                    # setting to occupied the channel in the lines crossed and in the complete path in the route space
+                    # data structure
+                    connection.snr = 10 * np.log10(lightpath.signal_power / lightpath.noise_power)
+                    connection.latency = lightpath.latency
+                    connection.bit_rate = bit_rate
+                    self.update_routing_space(best_path)
             else:
                 connection.snr = 0
                 connection.latency = -1

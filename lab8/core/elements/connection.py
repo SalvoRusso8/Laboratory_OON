@@ -5,7 +5,7 @@ class Connection(object):
         self._signal_power = signal_power
         self._latency = 0.00
         self._snr = 0.00
-
+        self._bit_rate = 0
     @property
     def input(self):
         return self._input
@@ -26,6 +26,10 @@ class Connection(object):
     def snr(self):
         return self._snr
 
+    @property
+    def bit_rate(self):
+        return self._bit_rate
+
     @latency.setter
     def latency(self, latency):
         self._latency = latency
@@ -33,4 +37,8 @@ class Connection(object):
     @snr.setter
     def snr(self, snr):
         self._snr = snr
+
+    @property
+    def bit_rate(self):
+        return self._bit_rate
 
