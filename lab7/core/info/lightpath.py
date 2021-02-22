@@ -1,4 +1,4 @@
-from lab6.core.info.signalInformation import SignalInformation
+from lab5.core.info.signalInformation import SignalInformation
 
 
 class Lightpath(SignalInformation):

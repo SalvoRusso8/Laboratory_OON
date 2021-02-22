@@ -1,8 +1,8 @@
 from copy import deepcopy
 
-from lab6.core.elements.network import Network
-from lab6.core.info.signalInformation import SignalInformation
-from lab6.core.elements.connection import Connection
+from lab5.core.elements.network import Network
+from lab5.core.info.signalInformation import SignalInformation
+from lab5.core.elements.connection import Connection
 import pandas as pd
 import numpy as np
 import random as rand
