@@ -60,6 +60,7 @@ class Node(object):
                     if signal_information.channel != 0:
                         channels[signal_information.channel - 1] = 0
             line = self.successive[line_label]
+            signal_information.signal_power = line.optimized_launch_power(signal_information)
             signal_information.next()
             signal_information = line.propagate(signal_information)
         return signal_information
