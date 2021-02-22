@@ -4,9 +4,9 @@ from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from lab9.core.elements.node import Node
-from lab9.core.elements.line import Line
-from lab9.core.info.lightpath import Lightpath
+from lab10.core.elements.node import Node
+from lab10.core.elements.line import Line
+from lab10.core.info.lightpath import Lightpath
 from scipy.special import erfcinv
 
 n_channel = 10

@@ -1,4 +1,4 @@
-from lab10.core.info.signalInformation import SignalInformation
+from lab9.core.info.signalInformation import SignalInformation
 
 Rs = 32e9  # [Hz] symbol rate
 df = 50e9  # [Hz] frequency spacing
