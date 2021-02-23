@@ -1,5 +1,5 @@
 import csv
-from copy import deepcopy
+from copy import deepcopy, copy
 
 from lab10.core.elements.network import Network
 from lab10.core.info.signalInformation import SignalInformation
@@ -12,7 +12,7 @@ import statistics as st
 from math import inf
 
 default_bandwidth = 100e9  # [bit]
-M = 8
+M = 40
 default_signal_power = 1e-3
 
 
@@ -28,7 +28,6 @@ def reset_traffic_matrix(traffic_matrix, network):
 
 if __name__ == '__main__':
     for i in range(2):
-        i=1
         # if i==0, test connections, if i==1 use traffic matrix
         network_fixed_rate = Network('../resources/nodes_full_fixed_rate.json')
         network_fixed_rate.connect()
@@ -104,7 +103,7 @@ if __name__ == '__main__':
         plt.title('[Lab10] SNR distribution with fixed rate')
         plt.ylabel('#Connections')
         plt.xlabel('SNR [dB]')
-        plt.show(block=True)
+        plt.show()
         bit_rate_fixed_rate = [c.bit_rate for c in connections_fixed_rate if c.bit_rate != 0]
         print("Overall average bit rate with Fixed Rate: ", st.mean(bit_rate_fixed_rate), "bps [",
               st.mean(bit_rate_fixed_rate) / 1e9, "Gbps]")
@@ -133,7 +132,7 @@ if __name__ == '__main__':
         plt.title('[Lab10] SNR distribution with flex rate')
         plt.ylabel('#Connections')
         plt.xlabel('SNR [dB]')
-        plt.show(block=True)
+        plt.show()
         bit_rate_flex_rate = [c.bit_rate for c in connections_flex_rate if c.bit_rate != 0]
         print("Overall average bit rate with Flex Rate: ", st.mean(bit_rate_flex_rate),
               "bps [", st.mean(bit_rate_flex_rate) / 1e9, "Gbps]")
@@ -152,8 +151,8 @@ if __name__ == '__main__':
             connections_shannon = []
             while connections_left > 0:
                 connections_left -= network_shannon.connections_traffic_matrix(traffic_matrix_shannon,
-                                                                                 connections_shannon,
-                                                                                 default_signal_power)
+                                                                               connections_shannon,
+                                                                               default_signal_power)
         else:
             network_shannon.stream(connections_shannon, 'snr')
         snr_shannon = [c.snr for c in connections_shannon if c.bit_rate != 0]
@@ -162,7 +161,7 @@ if __name__ == '__main__':
         plt.title('[Lab10] SNR distribution with Shannon')
         plt.ylabel('#Connections')
         plt.xlabel('SNR [dB]')
-        plt.show(block=True)
+        plt.show()
         bit_rate_shannon = [c.bit_rate for c in connections_shannon if c.bit_rate != 0]
         print("Overall average bit rate with Shannon: ", st.mean(bit_rate_shannon), "bps [",
               st.mean(bit_rate_shannon) / 1e9, "Gbps]")
@@ -173,18 +172,67 @@ if __name__ == '__main__':
         plt.title('[Lab10] Bit rate distribution with Fixed Rate')
         plt.ylabel('#Connections')
         plt.xlabel('bit rate [bps]')
-        plt.show(block=True)
+        plt.show()
 
         plt.figure()
         plt.hist(bit_rate_flex_rate, label='Bit Rate Flex Rate')
         plt.title('[Lab10] Bit rate distribution with Flex Rate')
         plt.ylabel('#Connections')
         plt.xlabel('bit rate [bps]')
-        plt.show(block=True)
+        plt.show()
 
         plt.figure()
         plt.hist(bit_rate_shannon, label='Bit Rate Shannon')
         plt.title('[Lab10] Bit rate distribution with Shannon')
         plt.ylabel('#Connections')
         plt.xlabel('bit rate [bps]')
-        plt.show(block=True)
+        plt.show()
+
+        if i == 1:
+            x_labels = ['A', 'B', 'C', 'D', 'E', 'F']
+            y_labels = ['A', 'B', 'C', 'D', 'E', 'F']
+            # Create dummy x values, with a value for every label entry
+            x = np.r_[:len(x_labels)]
+            y = np.r_[:len(y_labels)]
+            cmap = plt.cm.jet
+            cmap = copy(plt.cm.get_cmap("jet"))
+            cmap.set_bad('red', 1.)
+
+            # plot traffic matrix fixed
+            a = df.from_dict(traffic_matrix_fixed).to_numpy(dtype=float, na_value=None).astype(float)
+            fig, ax = plt.subplots()
+            for ind1 in range(df.from_dict(traffic_matrix_fixed).shape[0]):
+                for ind2 in range(df.from_dict(traffic_matrix_fixed).shape[1]):
+                    text = ax.text(ind2, ind1, a[ind1, ind2],
+                                   ha="center", va="center", color="w")
+            # Change the xticks and yticks as desired
+            plt.xticks(x, x_labels)
+            plt.yticks(y, y_labels)
+            plt.title("Traffic matrix Fixed Rate with M = " + str(M))
+            ax.imshow(a, interpolation='nearest', cmap=cmap)
+
+            # plot traffic matrix flex rate
+            a = df.from_dict(traffic_matrix_flex).to_numpy(dtype=float, na_value=None).astype(float)
+            fig, ax = plt.subplots()
+            for ind1 in range(df.from_dict(traffic_matrix_flex).shape[0]):
+                for ind2 in range(df.from_dict(traffic_matrix_flex).shape[1]):
+                    text = ax.text(ind2, ind1, a[ind1, ind2],
+                                   ha="center", va="center", color="w")
+            # Change the xticks and yticks as desired
+            plt.xticks(x, x_labels)
+            plt.yticks(y, y_labels)
+            plt.title("Traffic matrix Flex Rate with M = " + str(M))
+            ax.imshow(a, interpolation='nearest', cmap=cmap)
+
+            # plot traffic matrix shannon
+            a = df.from_dict(traffic_matrix_shannon).to_numpy(dtype=float, na_value=None).astype(float)
+            fig, ax = plt.subplots()
+            for ind1 in range(df.from_dict(traffic_matrix_shannon).shape[0]):
+                for ind2 in range(df.from_dict(traffic_matrix_shannon).shape[1]):
+                    text = ax.text(ind2, ind1, a[ind1, ind2],
+                                   ha="center", va="center", color="w")
+            # Change the xticks and yticks as desired
+            plt.xticks(x, x_labels)
+            plt.yticks(y, y_labels)
+            plt.title("Traffic matrix Shannon with M = " + str(M))
+            ax.imshow(a, interpolation='nearest', cmap=cmap)
