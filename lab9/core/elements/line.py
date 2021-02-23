@@ -121,5 +121,5 @@ class Line(object):
     def nli_generation(self, lightpath):
         eta_nli = 16 / (27 * np.pi) * np.log((np.pi ** 2) / 2 * self.beta2 * (lightpath.symbol_rate ** 2)
                                              / self.alpha * (n_channel ** (2 * lightpath.symbol_rate / lightpath.df))) \
-                  * (self.alpha / self.beta2 * ((self.gamma ** 2) * (self.Leff ** 2) / (lightpath.symbol_rate ** 3)))
+                  * (self.alpha / self.beta2 * ((self.gamma ** 2) * (self.leff ** 2) / (lightpath.symbol_rate ** 3)))
         return lightpath.signal_power ** 3 * eta_nli * self.n_span * Bn

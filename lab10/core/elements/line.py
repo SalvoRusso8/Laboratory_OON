@@ -107,6 +107,7 @@ class Line(object):
         latency = self.latency_generation()
         lightpath.add_latency(latency)
 
+        lightpath.isnr += self.isnr_generation(lightpath)
         node = self.successive[lightpath.path[0]]
         if type(lightpath) is Lightpath:
             lightpath = node.propagate(lightpath, self.label[0])
@@ -125,8 +126,13 @@ class Line(object):
     def get_eta_nli(self, lightpath):
         return 16 / (27 * np.pi) * np.log((np.pi ** 2) / 2 * self.beta2 * (lightpath.symbol_rate ** 2)
                                              / self.alpha * (n_channel ** (2 * lightpath.symbol_rate / lightpath.df))) \
-                  * (self.alpha / self.beta2 * ((self.gamma ** 2) * (self.Leff ** 2) / (lightpath.symbol_rate ** 3)))
+                  * (self.alpha / self.beta2 * ((self.gamma ** 2) * (self.leff ** 2) / (lightpath.symbol_rate ** 3)))
 
     def optimized_launch_power(self, lightpath):
         # Optimal power = (Pase/ (2 * eta_nli * n_span*Bn)) ^ 1/3
-        return (self.ase_generation() / (2 / self.get_eta_nli(lightpath) * self.n_span * Bn)) ** (1/3)
+        return (self.ase_generation() / (2 * self.get_eta_nli(lightpath) * self.n_span * Bn)) ** (1/3)
+
+    def isnr_generation(self, lightpath):
+        gsnr = lightpath.signal_power / self.noise_generation(lightpath)
+        return 1/gsnr
+

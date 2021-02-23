@@ -4,10 +4,14 @@ from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import random as rand
+
 from lab10.core.elements.node import Node
 from lab10.core.elements.line import Line
 from lab10.core.info.lightpath import Lightpath
+from lab10.core.elements.connection import Connection
 from scipy.special import erfcinv
+from math import inf
 
 n_channel = 10
 ber_t = 1e-3
@@ -175,7 +179,8 @@ class Network(object):
                 path_label = ''
                 for index in range(0, len(best_path), 3):
                     path_label += best_path[index]
-                bit_rate = self.calculate_bit_rate(best_path, self.nodes[path_label[0]].transceiver)
+                lightpath = Lightpath(connection.signal_power, path_label, channel)
+                bit_rate = self.calculate_bit_rate(lightpath, self.nodes[path_label[0]].transceiver)
                 if bit_rate == 0:
                     connection.snr = 0
                     connection.latency = -1
@@ -185,14 +190,14 @@ class Network(object):
                     self.propagate(lightpath)
                     # setting to occupied the channel in the lines crossed and in the complete path in the route space
                     # data structure
-                    connection.snr = 10 * np.log10(lightpath.signal_power / lightpath.noise_power)
+                    connection.snr = 10 * np.log10(1 / lightpath.isnr)
                     connection.latency = lightpath.latency
                     connection.bit_rate = bit_rate
                     self.update_routing_space(best_path)
             else:
                 connection.snr = 0
                 connection.latency = -1
-        self.restore_network()
+        # self.restore_network()
 
     def restore_network(self):
         self.route_space = self.route_space[0:0]
@@ -256,3 +261,31 @@ class Network(object):
                 return 400e9
         elif strategy == 'shannon':
             return 2 * lightpath.symbol_rate * np.log2(1 + (gsnr * Bn / lightpath.symbol_rate))
+
+    def connections_traffic_matrix(self, traffic_matrix, connections, signal_power):
+        nodes = list(self.nodes.keys())
+        # loop until two valid nodes (different between them and with bandwidth requested) are found
+        while True:
+            input_node = rand.choice(nodes)
+            output_node = rand.choice(nodes)
+            if input_node != output_node and traffic_matrix[input_node][output_node] != 0 \
+                    and traffic_matrix[input_node][output_node] != inf:
+                break
+        connection = Connection(input_node, output_node, signal_power)
+        self.stream([connection], 'snr')
+        connections.append(connection)
+
+        #  if a valid path is found in the stream method, update the traffic matrix
+        if connection.snr != 0:
+            #  return 1 if the request is totally satisfied or if no path is available, otherwise return 0
+            if connection.bit_rate >= traffic_matrix[input_node][output_node]:
+                traffic_matrix[input_node][output_node] = 0
+                return 1
+            else:
+                traffic_matrix[input_node][output_node] -= connection.bit_rate
+                return 0
+        else:
+            traffic_matrix[input_node][output_node] = inf
+        return 1
+
+
