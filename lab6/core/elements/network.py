@@ -178,11 +178,6 @@ class Network(object):
             for path in self.weighted_path['path']: self.route_space = self.route_space.append(
                 {'path': path, 'channels': [1] * n_channel}, ignore_index=True, sort=None)
         else:
-            # updating routing space, starting from the first line of the path
-            route_space_index = self.route_space[self.route_space['path'] == best_path].index.values[0]
-            first_line = self.lines[best_path[0] + best_path[3]]
-            self.route_space.at[route_space_index, 'channels'] = first_line.state
-
             for path in self.route_space['path']:
                 node1 = 3
                 first_line = self.lines[path[0] + path[node1]]
@@ -192,11 +187,6 @@ class Network(object):
                     line_state = np.multiply(line_state, line.state)
                     line_state = np.multiply(self.nodes[path[node1]].switching_matrix[path[node1 - 3]][path[node_i]],
                                              line_state)
-                    # if the path is the one updated in the stream() method, also the the entries of the crossed lines
-                    # must be updated in the route space
-                    if best_path == path:
-                        index = self.route_space[self.route_space['path'] == path[node1:node_i + 1]].index.values[0]
-                        self.route_space.at[index, 'channels'] = line.state
                     node1 = node_i
-            route_space_index = self.route_space[self.route_space['path'] == path].index.values[0]
-            self.route_space.at[route_space_index, 'channels'] = line_state
+                route_space_index = self.route_space[self.route_space['path'] == path].index.values[0]
+                self.route_space.at[route_space_index, 'channels'] = line_state
