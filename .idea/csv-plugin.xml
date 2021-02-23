@@ -17,6 +17,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/lab5/tasks/main.py">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/lab7/resources/con2.csv">
           <value>
             <Attribute>

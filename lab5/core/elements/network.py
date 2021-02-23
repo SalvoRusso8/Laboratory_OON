@@ -178,10 +178,10 @@ class Network(object):
                 # setting to occupied the channel in the lines crossed and in the complete path in the route space data structure
                 for line in range(0, len(best_path) - 1, 3):
                     current_index = self.route_space[
-                        self.route_space['path'] == best_path[line:line + 4]].index.values.astype(int)
+                        self.route_space['path'] == best_path[line:line + 4]].index.values.astype(int)[0]
                     self.route_space.at[current_index, str(channel)] = 'occupied'
-                if len(best_path) >= 4:
-                    current_index = self.route_space[self.route_space['path'] == best_path].index.values.astype(int)
+                if len(best_path) > 4:
+                    current_index = self.route_space[self.route_space['path'] == best_path].index.values.astype(int)[0]
                     self.route_space.at[current_index, str(channel)] = 'occupied'
                 connection.snr = 10 * np.log10(lightpath.signal_power / lightpath.noise_power)
                 connection.latency = lightpath.latency
