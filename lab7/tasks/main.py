@@ -48,7 +48,7 @@ if __name__ == '__main__':
     network_full.update_routing_space(None)
 
     connections_full = []
-    with open('../resources/connections_test.csv') as connections_file:
+    with open('../resources/connections_test_AB.csv') as connections_file:
         csvReader = csv.reader(connections_file)
         for row in csvReader:
             connections_full.append(Connection(row[0], row[1], float(row[2])))
@@ -65,6 +65,7 @@ if __name__ == '__main__':
     connections_not_full = deepcopy(connections_full)
 
     # Stream with label='snr'
+    print("full matrix channel occupancy")
     network_full.stream(connections_full, 'snr')
     snr_full_list = [c.snr for c in connections_full]
     plt.figure()
@@ -72,12 +73,13 @@ if __name__ == '__main__':
     plt.title('[Lab7] SNR distribution with full switching matrix')
     plt.ylabel('#Connections')
     plt.xlabel('SNR [dB]')
-    plt.show(block=True)
+    plt.show()
 
     network_not_full = Network('../resources/nodes_not_full.json')
     network_not_full.connect()
     network_not_full.weighted_path = df
     network_not_full.update_routing_space(None)
+    print("not full matrix channel occupancy")
     network_not_full.stream(connections_not_full, 'snr')
     snr_not_full_list = [c.snr for c in connections_not_full]
     plt.figure()
@@ -85,5 +87,5 @@ if __name__ == '__main__':
     plt.title('[Lab7] SNR distribution with not full switching matrix')
     plt.ylabel('#Connections')
     plt.xlabel('SNR [dB]')
-    plt.show(block=True)
+    plt.show()
 

@@ -177,6 +177,22 @@ class Network(object):
             else:
                 connection.snr = 0
                 connection.latency = -1
+        ch_occ = []
+        for label in self.lines.keys():
+            counter = 0
+            line_state = self.lines[label].state
+            for c in line_state:
+                counter += c
+            ch_occ.append((1 - (counter / len(line_state))) * 100)
+            print(label + ":" + str((1 - (counter / len(line_state))) * 100))
+        plt.figure()
+        plt.bar(list(self.lines.keys()), ch_occ,  label='Wavelength congestion')
+        plt.xticks(list(self.lines.keys()))
+        plt.title('[Lab7] Wavelength congestion')
+        plt.ylabel('Congestion [%]')
+        plt.xlabel('Line label')
+        plt.show()
+
         self.restore_network()
 
     def restore_network(self):
