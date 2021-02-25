@@ -68,8 +68,10 @@ if __name__ == '__main__':
     print("full matrix channel occupancy")
     network_full.stream(connections_full, 'snr')
     snr_full_list = [c.snr for c in connections_full]
+    w = 1
+    n = np.math.ceil((max(snr_full_list) - min(snr_full_list)) / w)
     plt.figure()
-    plt.hist(snr_full_list, label='Snr distribution')
+    plt.hist(snr_full_list, bins=n, label='Snr distribution')
     plt.title('[Lab7] SNR distribution with full switching matrix')
     plt.ylabel('#Connections')
     plt.xlabel('SNR [dB]')
@@ -82,8 +84,10 @@ if __name__ == '__main__':
     print("not full matrix channel occupancy")
     network_not_full.stream(connections_not_full, 'snr')
     snr_not_full_list = [c.snr for c in connections_not_full]
+    w = 1
+    n = np.math.ceil((max(snr_not_full_list) - min(snr_not_full_list)) / w)
     plt.figure()
-    plt.hist(snr_not_full_list, label='Snr distribution')
+    plt.hist(snr_not_full_list, bins=n, label='Snr distribution')
     plt.title('[Lab7] SNR distribution with not full switching matrix')
     plt.ylabel('#Connections')
     plt.xlabel('SNR [dB]')
