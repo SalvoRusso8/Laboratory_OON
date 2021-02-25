@@ -64,7 +64,7 @@ if __name__ == '__main__':
         connections_full.append(Connection(input_rand, output_rand, 1e-3))'''
 
     connections_flex_rate = deepcopy(connections_fixed_rate)
-    connections_shannon =  deepcopy(connections_fixed_rate)
+    connections_shannon = deepcopy(connections_fixed_rate)
     
     # Stream with label='snr'
     network_fixed_rate.stream(connections_fixed_rate, 'snr')
