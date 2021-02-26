@@ -12,7 +12,7 @@ import statistics as st
 from math import inf
 
 default_bandwidth = 100e9  # [bit]
-M = 40
+M = 37
 default_signal_power = 1e-3
 
 
@@ -29,6 +29,7 @@ def reset_traffic_matrix(traffic_matrix, network):
 if __name__ == '__main__':
     for i in range(2):
         # if i==0, test connections, if i==1 use traffic matrix
+        # i=1
         network_fixed_rate = Network('../resources/nodes_full_fixed_rate.json')
         network_fixed_rate.connect()
         node_labels = network_fixed_rate.nodes.keys()
@@ -110,6 +111,22 @@ if __name__ == '__main__':
         print("Total capacity with Fixed Rate: ", sum(bit_rate_fixed_rate), "bps [",
               sum(bit_rate_fixed_rate) / 1e9, "Gbps]")
 
+        ch_occ = []
+        for label in network_fixed_rate.lines.keys():
+            counter = 0
+            line_state = network_fixed_rate.lines[label].state
+            for c in line_state:
+                counter += c
+            ch_occ.append((1 - (counter / len(line_state))) * 100)
+            print(label + ":" + str((1 - (counter / len(line_state))) * 100))
+        plt.figure()
+        plt.bar(list(network_fixed_rate.lines.keys()), ch_occ,  label='Wavelength congestion')
+        plt.xticks(list(network_fixed_rate.lines.keys()))
+        plt.title('[Lab10] Wavelength congestion fixed rate')
+        plt.ylabel('Congestion [%]')
+        plt.xlabel('Line label')
+        plt.show()
+
         network_flex_rate = Network('../resources/nodes_full_flex_rate.json')
         network_flex_rate.connect()
         network_flex_rate.weighted_path = df
@@ -139,6 +156,22 @@ if __name__ == '__main__':
         print("Total capacity with Flex Rate: ", sum(bit_rate_flex_rate), "bps [", sum(bit_rate_flex_rate) / 1e9,
               "Gbps]")
 
+        ch_occ = []
+        for label in network_flex_rate.lines.keys():
+            counter = 0
+            line_state = network_flex_rate.lines[label].state
+            for c in line_state:
+                counter += c
+            ch_occ.append((1 - (counter / len(line_state))) * 100)
+            print(label + ":" + str((1 - (counter / len(line_state))) * 100))
+        plt.figure()
+        plt.bar(list(network_flex_rate.lines.keys()), ch_occ,  label='Wavelength congestion')
+        plt.xticks(list(network_flex_rate.lines.keys()))
+        plt.title('[Lab10] Wavelength congestion flex rate')
+        plt.ylabel('Congestion [%]')
+        plt.xlabel('Line label')
+        plt.show()
+
         network_shannon = Network('../resources/nodes_full_shannon.json')
         network_shannon.connect()
         network_shannon.weighted_path = df
@@ -166,6 +199,22 @@ if __name__ == '__main__':
         print("Overall average bit rate with Shannon: ", st.mean(bit_rate_shannon), "bps [",
               st.mean(bit_rate_shannon) / 1e9, "Gbps]")
         print("Total capacity with Shannon: ", sum(bit_rate_shannon), "bps [", sum(bit_rate_shannon) / 1e9, "Gbps]")
+
+        ch_occ = []
+        for label in network_shannon.lines.keys():
+            counter = 0
+            line_state = network_shannon.lines[label].state
+            for c in line_state:
+                counter += c
+            ch_occ.append((1 - (counter / len(line_state))) * 100)
+            print(label + ":" + str((1 - (counter / len(line_state))) * 100))
+        plt.figure()
+        plt.bar(list(network_shannon.lines.keys()), ch_occ,  label='Wavelength congestion')
+        plt.xticks(list(network_shannon.lines.keys()))
+        plt.title('[Lab10] Wavelength congestion Shannon rate')
+        plt.ylabel('Congestion [%]')
+        plt.xlabel('Line label')
+        plt.show()
 
         plt.figure()
         plt.hist(bit_rate_fixed_rate, label='Bit Rate Fixed Rate')
